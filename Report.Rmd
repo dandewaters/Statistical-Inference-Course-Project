@@ -1,0 +1,43 @@
+---
+title: "Statistical Inference Course Project"
+author: "Daniel DeWaters"
+date: "11/7/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+```
+
+
+# Statistical Inference Course Project
+## Part 1 - Simulation Exercise
+### Overview
+In this project I will compare the exponential distribution with Central Limit Theorem
+
+### Simulations
+```{r simulations}
+
+```
+###Sample Mean vs Theoretical Mean
+###Sample Variance vs Theoretical Variance
+###Distribution
+
+## Part 2 - Tooth Growth
+```{r loadData}
+data("ToothGrowth")
+d <- 
+  ToothGrowth %>%
+  mutate(dose=as.factor(dose)) %>%
+  group_by(supp, dose) %>%
+  summarise(mean_length = mean(len))
+```
+
+```{r toothPlots}
+g <- ggplot(d, aes(dose, mean_length))
+g + facet_grid(cols=vars(supp)) + geom_bar(stat="identity", aes(fill=dose)) +
+    ggtitle("Mean Tooth Growth by Treatment and Dosage") +
+    xlab("Dosage") + ylab("Mean Length") + theme(legend.position="none")
+```
