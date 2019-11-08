@@ -26,18 +26,61 @@ In this project I will compare the exponential distribution with Central Limit T
 ###Distribution
 
 ## Part 2 - Tooth Growth
+### Overview
+
+ToothGrowth data set contains the result from an experiment studying the effect of vitamin C on tooth growth in 60 Guinea pigs. Each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, (orange juice or ascorbic acid (a form of vitamin C and coded as VC).
+
+### Loading The Data
 ```{r loadData}
 data("ToothGrowth")
+
 d <- 
+  ToothGrowth %>%
+  mutate(dose = as.factor(dose))
+
+d_means <- 
   ToothGrowth %>%
   mutate(dose=as.factor(dose)) %>%
   group_by(supp, dose) %>%
   summarise(mean_length = mean(len))
 ```
 
+### Summarizing The Data
 ```{r toothPlots}
-g <- ggplot(d, aes(dose, mean_length))
+g <- ggplot(d_means, aes(dose, mean_length))
 g + facet_grid(cols=vars(supp)) + geom_bar(stat="identity", aes(fill=dose)) +
     ggtitle("Mean Tooth Growth by Treatment and Dosage") +
-    xlab("Dosage") + ylab("Mean Length") + theme(legend.position="none")
+    xlab("Dosage (in mg)") + ylab("Mean Tooth Length") + theme(legend.position="none")
+
+g <- ggplot(d, aes(x=dose, y=len, group=dose))
+g + geom_boxplot(aes(fill=dose)) + facet_grid(cols=vars(supp)) +
+    ggtitle("Boxplots of Tooth Growth by Treatment and Dosage") +
+    xlab("Dosage (in mg)") + ylab("Tooth Length") + theme(legend.position="none")
 ```
+
+Exploring the data shows the following:
+  1. Mean tooth length increases with increased dosage
+  2. Mean tooth length is higher at 0.5mg and 1.0mg dosage
+  3. Mean tooth length is similar at the 2.0 mg dosage
+
+### Comparing Tooth Growth by Supplement and Dosage
+```{r}
+# Make vectors of tooth lengths resulting from each supplement/dosage combination
+oj0.5 <- d[d$supp=="OJ" & d$dose==0.5, 1]
+oj1.0 <- d[d$supp=="OJ" & d$dose==1, 1]
+oj2.0 <- d[d$supp=="OJ" & d$dose==2, 1]
+vc0.5 <- d[d$supp=="VC" & d$dose==0.5, 1]
+vc1.0 <- d[d$supp=="VC" & d$dose==1, 1]
+vc2.0 <- d[d$supp=="VC" & d$dose==2, 1]
+
+# Perform t-tests on supplement pairs at each dosage
+t.test(oj0.5, vc0.5, alternative="greater")
+t.test(oj1.0, vc1.0, alternative="greater")
+t.test(oj2.0, vc2.0, alternative="greater")
+
+
+# Perform t test on OJ and VC at all dosage levels
+t.test(len~supp, data=ToothGrowth, paired=FALSE, var.equal=FALSE)
+```
+
+### Conclusions
