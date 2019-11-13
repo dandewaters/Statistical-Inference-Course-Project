@@ -1,0 +1,73 @@
+---
+title: "Statistical Inference Project Part 1 - Simulation Exercise"
+author: "Daniel DeWaters"
+date: "11/7/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+
+# Statistical Inference Course Project Part 1 - Simulation Exercise
+## 1. Overview
+In this project I will compare the exponential distribution with Central Limit Theorem. I will do 1,000 simulations investigating the distribution of averages of 40 exponentials with a lambda of 0.2.
+
+## 2. Simulations
+```{r simulations}
+# Set the seed for randomly generated exponentials
+set.seed(400)
+
+# Parameters for simulation
+lambda <- 0.2
+n <- 40
+sim <- 1:1000
+
+# Simulate population
+pop_sim <- data.frame(runs = sapply(sim, function(x){mean(rexp(n, lambda))}))
+
+# Summarize simulation results
+summary(pop_sim)
+```
+
+## 3. Sample Mean and Variance VS Theoretical Mean and Variance
+```{r sampVStheo}
+#Calculate the sample/theoretical mean, variance, and standard deviation
+sample_mean <- mean(pop_sim$runs)
+theoretical_mean <- 1/lambda
+
+sample_variance <- var(pop_sim$runs)
+theoretical_variance <- ((1/lambda)^2)/n
+
+sample_sd = sd(pop_sim$runs)
+theoretical_sd = (1/lambda)/sqrt(n)
+
+# Display a list of the sample/theoretical mean and variance
+rbind(sample_mean, theoretical_mean, sample_variance, theoretical_variance)
+
+# Display 95% confidence interval
+t.test(pop_sim$runs)$conf.int
+```
+
+The sample mean and variance are close to the theoretical mean and variance. The 95% confidence interval contains the theoretical mean. 
+
+## 4. Distribution
+```{r plots}
+
+# Plot histogram of means
+ggplot(data=pop_sim, aes(runs)) +
+  geom_histogram(aes(y=..density.., fill=..density..), bins=30) +
+  geom_density(aes(colour="a"), size=1) +
+  stat_function(fun=dnorm, args=list(mean=sample_mean,sd=sample_sd),aes(color="b"), size=1) +
+  geom_vline(aes(xintercept=sample_mean, color="a"), size=1) +
+  geom_vline(aes(xintercept=theoretical_mean, color="b"), size=1) +
+  scale_color_discrete(name = "Density", labels = c("Sample", "Theoretical")) +
+  theme(legend.position=c(.92, .9)) +
+  labs(title="Distibution of Means of 40 Exponentials", x="", y="Count")
+```
+
+The means of 40 exponentials over 1000 simulations are are centered and distributed closely to the normal distribution.

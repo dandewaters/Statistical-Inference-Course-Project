@@ -1,0 +1,88 @@
+---
+title: "Statistical Inference Project Part 2 - Tooth Growth"
+author: "Daniel DeWaters"
+date: "11/11/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+```
+
+## Part 2 - Tooth Growth
+## 1. Overview
+
+The ToothGrowth data set is from an experiment comparing the effects of two supplements, orange juice (OJ) and absorbic acid (VC), on tooth growth in 60 Guinea pigs. Each Guinea pig was given 0.5, 1, or 2 mg of either orange juice or absorbic acid per day. In this report I will compare the tooth growth by the supplement and dosage groups
+
+### Loading The Data
+```{r loadData}
+data("ToothGrowth")
+
+d <- 
+  ToothGrowth %>%
+  mutate(dose = as.factor(dose))
+
+d_means <- 
+  ToothGrowth %>%
+  mutate(dose=as.factor(dose)) %>%
+  group_by(supp, dose) %>%
+  summarise(mean_length = mean(len))
+```
+
+## 2. Summarizing The Data
+```{r toothPlots}
+g <- ggplot(d_means, aes(dose, mean_length))
+g + facet_grid(cols=vars(supp)) + geom_bar(stat="identity", aes(fill=dose)) +
+    ggtitle("Mean Tooth Growth by Treatment and Dosage") +
+    xlab("Dosage (in mg)") + ylab("Mean Tooth Length") + theme(legend.position="none")
+
+g <- ggplot(d, aes(x=dose, y=len, group=dose))
+g + geom_boxplot(aes(fill=dose)) + facet_grid(cols=vars(supp)) +
+    ggtitle("Boxplots of Tooth Growth by Treatment and Dosage") +
+    xlab("Dosage (in mg)") + ylab("Tooth Length") + theme(legend.position="none")
+```
+
+Exploring the data shows the following:
+
+  1. Mean tooth length increases with increased dosage
+  2. Mean tooth length from OJ is higher at 0.5mg and 1.0mg dosage
+  3. Mean tooth length from OJ and VC is similar at the 2.0mg dosage
+
+## 3. Comparing Tooth Growth by Supplement and Dosage
+I will compare the supplement groups using T-tests with a null hypothesis that the means are equal and an alternate hypothesis that the means are significantly different. First I will compare the tooth length from each supplement at all dosage levels, then at each dosage level individually.
+```{r}
+# Perform T-test on OJ and VC at all dosage levels
+t.test(len~supp, data=d, paired=FALSE, var.equal=FALSE)
+
+# Make vectors of tooth lengths resulting from each dosage combination
+low <- d[d$dose == 0.5,]
+med <- d[d$dose == 1.0,]
+high<- d[d$dose == 2.0,]
+
+# Perform T-test on supplement groups at each dosage level
+t.test(len~supp, data=low, paired=FALSE, var.equal=FALSE)
+t.test(len~supp, data=med, paired=FALSE, var.equal=FALSE)
+t.test(len~supp, data=high,paired=FALSE, var.equal=FALSE)
+```
+
+Ignoring dosage levels, there is no significant difference in mean tooth length, as the 95% confidence interval contains zero. At the 0.5mg and 1.0mg dosage, there is a significant different in mean tooth length, as the 95% confidence interval does not include zero. At the 2.0mg dosage level, there is no significant difference in mean tooth length, as the 95% confidence interval includes zero. 
+
+
+## 4. Conclusions
+
+Based on these confidence intervals we can confirm the following statements from the initial summarization of the data set:
+
+  1. Mean tooth length increases with increased dosage
+  2. Mean tooth length between OJ and VC is significantly different at 0.5mg and 1.0mg dosage
+  3. Mean tooth length between OJ and VC is not significantly different at the 2.0mg dosage
+
+With the assumptions:
+
+  1. The data is normally distributed and not paired.
+  2. The variances are not equal
+  3. The Guinea pigs were selected at random
